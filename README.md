@@ -7,8 +7,9 @@ Trainsim is a simple train simulator written in Rust
 ## Requirements
 
 1. Install Rust
+```
 $ curl https://sh.rustup.rs -sSf | sh
-
+```
 
 ## Setup
 
