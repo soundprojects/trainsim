@@ -1,0 +1,45 @@
+   import { ScrollView, Button, CheckBox, SpinBox, Slider, GroupBox, LineEdit, StandardListView,
+    ComboBox, HorizontalBox, VerticalBox, GridBox, TabWidget, TextEdit, AboutSlint } from "std-widgets.slint";
+
+    MainWindow := Window {
+
+        title:"Train Simulator";
+        background:#000;
+        default-font-size:24px;
+        default-font-family:"Helvetica";
+        min-width:500px;
+        min-height:500px;
+        preferred-width:500px;
+        preferred-height:500px;
+
+        //properties
+        property <string> counter : "0";
+
+        VerticalLayout{
+
+        spacing:25px;
+        padding:20px;
+        alignment:stretch;
+
+        Text {
+            text: "Train Simulator";
+            color: white;
+            horizontal-alignment:center;
+        }
+
+
+        Text {
+            text: "Counter:";
+            color: white;
+            horizontal-alignment:center;
+        }
+
+        counter-label := Text {
+            text: counter;
+            color: white;
+            horizontal-alignment:center;
+        }
+
+
+        }
+    }
