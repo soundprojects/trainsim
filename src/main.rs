@@ -6,7 +6,7 @@ use async_timer::Interval;
 ///We increment our counter
 ///For now we just increment counter by 1
 ///
-async fn increment_timer(counter: std::sync::Arc<AtomicUsize>) {
+fn increment_timer(counter: std::sync::Arc<AtomicUsize>) {
     let prev = counter.fetch_add(1, Ordering::SeqCst);
     println!("Counter is {}", prev + 1);
 }
@@ -23,12 +23,11 @@ async fn run_timer(counter: std::sync::Arc<AtomicUsize>) {
 //for now we wait for 10 seconds to complete
     while times < 10
     {
-        increment_timer(counter.clone()).await;
+        increment_timer(counter.clone());
         interval.wait().await;
         times += 1;
     }
 }
-
 
 //Tokio::main macro translates the main function back to a non-async function
 // .await calls are transformed to block_on to make for easy coding
