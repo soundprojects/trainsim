@@ -1,12 +1,14 @@
    import { ScrollView, Button, CheckBox, SpinBox, Slider, GroupBox, LineEdit, StandardListView,
     ComboBox, HorizontalBox, VerticalBox, GridBox, TabWidget, TextEdit, AboutSlint } from "std-widgets.slint";
 
+import "./fonts/Avenir_85_Heavy.ttf";
+
     MainWindow := Window {
 
         title:"Train Simulator";
         background:#000;
         default-font-size:24px;
-        default-font-family:"Helvetica";
+        default-font-family:"Avenir Heavy";
         min-width:500px;
         min-height:500px;
         preferred-width:500px;
@@ -16,30 +18,75 @@
         property <string> counter : "0";
 
         VerticalLayout{
-
-        spacing:25px;
-        padding:20px;
+        spacing:2px;
         alignment:stretch;
 
+        Rectangle{
+
+            background:#3A3C49;
+            height:30px;
+            VerticalLayout{   
+            width:parent.width;
+            height:parent.height; 
         Text {
-            text: "Train Simulator";
+            text: "TRAIN SIMULATOR";
+            font-size:12px;
             color: white;
+            horizontal-alignment:center;
+            vertical-alignment:center;
+            }
+        }}
+
+
+        Rectangle{
+
+        background:#3A3C49;
+        width: parent.width;
+        height:parent.height;
+        border-radius:5px;
+
+        Rectangle{
+        background:white;
+        opacity:0.11;
+        height:1px;
+        width:parent.width;
+        }
+
+        VerticalLayout{
+        width:parent.width;
+        height:parent.height;
+        alignment:center;
+        Text {
+                padding:5px;
+            text: "Counter";
+            color: white;
+            font-size:14px;
             horizontal-alignment:center;
         }
 
+        HorizontalLayout{
+        alignment:center;
+        Rectangle{
 
-        Text {
-            text: "Counter:";
-            color: white;
-            horizontal-alignment:center;
-        }
+        border-radius:5px;
+        background:#2C2F38;
+        width:75px;
+        height:75px;
 
-        counter-label := Text {
+
+        VerticalLayout{
+        width:parent.width;
+        height:parent.height;
+
+            counter-label := Text {
             text: counter;
             color: white;
             horizontal-alignment:center;
+            vertical-alignment:center;
+            }
+        }}
         }
 
-
+        }}
         }
     }
