@@ -1,4 +1,4 @@
-   import { ScrollView, Button, CheckBox, SpinBox, Slider, GroupBox, LineEdit, StandardListView,
+import { ScrollView, Button, CheckBox, SpinBox, Slider, GroupBox, LineEdit, StandardListView,
     ComboBox, HorizontalBox, VerticalBox, GridBox, TabWidget, TextEdit, AboutSlint } from "std-widgets.slint";
 
 import "./fonts/Avenir_85_Heavy.ttf";
@@ -18,75 +18,90 @@ import "./fonts/Avenir_85_Heavy.ttf";
         property <string> counter : "0";
 
         VerticalLayout{
-        spacing:2px;
-        alignment:stretch;
+
+            spacing:2px;
+            alignment:stretch;
+
+            Rectangle{
+                
+                background:#3A3C49;
+                height:30px;
+                VerticalLayout{   
+                width:parent.width;
+                height:parent.height; 
+
+                Text {
+
+                    text: "TRAIN SIMULATOR";
+                    font-size:12px;
+                    color: white;
+                    horizontal-alignment:center;
+                    vertical-alignment:center;
+                }
+            }
+        }
+
 
         Rectangle{
 
             background:#3A3C49;
-            height:30px;
-            VerticalLayout{   
-            width:parent.width;
-            height:parent.height; 
-        Text {
-            text: "TRAIN SIMULATOR";
-            font-size:12px;
-            color: white;
-            horizontal-alignment:center;
-            vertical-alignment:center;
+            width: parent.width;
+            height:parent.height;
+            border-radius:5px;
+
+            Rectangle{
+
+                background:white;
+                opacity:0.11;
+                height:1px;
+                width:parent.width;
             }
-        }}
+
+            VerticalLayout{
+
+                width:parent.width;
+                height:parent.height;
+                alignment:center;
+
+                Text {
+                    padding:5px;
+                    text: "Counter";
+                    color: white;
+                    font-size:14px;
+                    horizontal-alignment:center;
+                }
+
+                HorizontalLayout{
+
+                    alignment:center;
+
+                    Rectangle{
+
+                        border-radius:5px;
+                        background:#2C2F38;
+                        width:75px;
+                        height:75px;
+                        drop-shadow-offset-y: 10px;
+                        drop-shadow-color:#2C2F38;
+                        drop-shadow-blur:10px;
 
 
-        Rectangle{
+                        VerticalLayout{
 
-        background:#3A3C49;
-        width: parent.width;
-        height:parent.height;
-        border-radius:5px;
+                            width:parent.width;
+                            height:parent.height;
 
-        Rectangle{
-        background:white;
-        opacity:0.11;
-        height:1px;
-        width:parent.width;
-        }
+                            counter-label := Text {
 
-        VerticalLayout{
-        width:parent.width;
-        height:parent.height;
-        alignment:center;
-        Text {
-                padding:5px;
-            text: "Counter";
-            color: white;
-            font-size:14px;
-            horizontal-alignment:center;
-        }
-
-        HorizontalLayout{
-        alignment:center;
-        Rectangle{
-
-        border-radius:5px;
-        background:#2C2F38;
-        width:75px;
-        height:75px;
-
-
-        VerticalLayout{
-        width:parent.width;
-        height:parent.height;
-
-            counter-label := Text {
-            text: counter;
-            color: white;
-            horizontal-alignment:center;
-            vertical-alignment:center;
+                                text: counter;
+                                color: white;
+                                horizontal-alignment:center;
+                                vertical-alignment:center;
+                            }
+                        }
+                    }
+                }
             }
-        }}
-        }
-
-        }}
         }
     }
+}
