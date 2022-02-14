@@ -1,3 +1,7 @@
+
+use futures::future::{FutureExt};
+use tokio::{select, time::{interval}};
+use std::time::Duration;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::mpsc::UnboundedSender;
 use super::*;
@@ -5,8 +9,9 @@ use super::*;
 
 ///Worker Message Enumerator
 ///For now just contains Quit and Counter for updating our counter from the UI
+#[derive(Debug)]
 pub enum WorkerMessage{
-    Quit, Counter(i32)
+    Quit, Counter(i32), Reset,
 }
 
 ///Worker struct definition
@@ -54,28 +59,52 @@ impl Worker{
 ///Worker loop keeps running our defined tasks until the program is quit
 ///it allows for the UI to be updated through our weak handle
 ///sender and receivers are used for callback communication and other signals
-async fn worker_loop(mut _r: UnboundedReceiver<WorkerMessage>,
+async fn worker_loop(mut r: UnboundedReceiver<WorkerMessage>,
     handle: slint::Weak<MainWindow>)
 -> tokio::io::Result<()>{
 
     let mut counter: i32 = 0;
-    let mut interval = Interval::platform_new(core::time::Duration::from_secs(1));
+    let mut interval = interval(Duration::from_secs(1));
 
-//for now we wait for 10 seconds to complete
-    while counter < 10
-    {
+    loop{
+        let m = select!{
 
-        //increment
-        counter += 1;
-        println!("Counter is {}", counter);
 
-        //update our counter in the UI
-        handle.clone().upgrade_in_event_loop(move |h| h.set_counter(SharedString::from(counter.to_string())));
+            _ = interval.tick() => {
+                //Increment counter and update UI until 10
+                if counter <= 10 {
+                counter += 1;
+                handle.clone().upgrade_in_event_loop(move |h|
+                h.set_counter(SharedString::from(counter.to_string())));}
+                continue;
+            }
 
-        //wait a second
-        interval.wait().await;
+            m = r.recv().fuse() => {
+                match m {
+                    None => return Ok(()),
+                    Some(m) => m,
+                }
+            }
+
+        };
+
+
+    //We got a message from our receiver
+    match m{
+            WorkerMessage::Quit => return Ok(()),
+
+            WorkerMessage::Counter(number) => {
+                counter = number;
+            handle.clone().upgrade_in_event_loop(move |h|
+            h.set_counter(SharedString::from(counter.to_string())));
+            },
+
+            WorkerMessage::Reset => {
+                counter = 0;
+                handle.clone().upgrade_in_event_loop(move |h|
+                h.set_counter(SharedString::from(counter.to_string())));
+            },
+        }
     }
-
-    Ok(())
-
 }
+

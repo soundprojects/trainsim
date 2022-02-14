@@ -19,6 +19,8 @@ import "./fonts/Avenir_85_Heavy.ttf";
 
         //callbacks
         callback reset();
+        callback set_counter(int);
+
         VerticalLayout{
 
             spacing:2px;
@@ -129,6 +131,32 @@ import "./fonts/Avenir_85_Heavy.ttf";
                        clicked => {root.reset()}
                         }
                     }
+
+                                    HorizontalLayout {  
+
+                    alignment:center;
+
+                    Rectangle{
+                       width:100px;
+                       height:30px;
+                       background:#4E505C;
+                       border-radius:15px;
+
+                       VerticalLayout {  
+
+                           Text{
+                            text:"set 5";
+                            color:white;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                           }
+                        }
+
+                       TouchArea {  
+                       clicked => {root.set_counter(5)}
+                        }
+                    }
+                }
                 }
             }
         }
