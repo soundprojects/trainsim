@@ -2,17 +2,23 @@ use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::mpsc::UnboundedSender;
 use super::*;
 
+
+///Worker Message Enumerator
+///For now just contains Quit and Counter for updating our counter from the UI
 pub enum WorkerMessage{
     Quit, Counter(i32)
 }
 
+///Worker struct definition
+///Channel and thread defined
 pub struct Worker{
 
 pub channel: UnboundedSender<WorkerMessage>,
 worker_thread: std::thread::JoinHandle<()>
 }
 
-
+///Worker implementation
+///implementation creates our worker thread and a channel for communication
 impl Worker{
 
     pub fn new(handle: &MainWindow) -> Self{
@@ -44,6 +50,10 @@ impl Worker{
 
 }
 
+
+///Worker loop keeps running our defined tasks until the program is quit
+///it allows for the UI to be updated through our weak handle
+///sender and receivers are used for callback communication and other signals
 async fn worker_loop(mut _r: UnboundedReceiver<WorkerMessage>,
     handle: slint::Weak<MainWindow>)
 -> tokio::io::Result<()>{

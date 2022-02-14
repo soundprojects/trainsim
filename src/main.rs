@@ -15,8 +15,6 @@ async fn main() {
     //start our Slint Window
     let window = MainWindow::new();
 
-    //get reference to our window that we can send across threads
-    let handle = window.as_weak();
 
     //start worker task and pass our window handle
     let worker = worker::Worker::new(&window);
