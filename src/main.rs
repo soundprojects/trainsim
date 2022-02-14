@@ -19,18 +19,16 @@ async fn main() {
     let handle = window.as_weak();
 
     //start worker task and pass our window handle
-    let task = tokio::spawn(async move {
-        worker::run_timer(handle).await;
-        
-    });
+    let worker = worker::Worker::new(&window);
+
 
     //run window
     window.run();
 
-    //block on our worker task
-    let _result = task.await.unwrap(); 
 
-    //if we got here, worker is done and window is closed
+    //if we got here, worker window is closed, so we join worker thread
     println!("Program is quitting");
+
+    worker.join().unwrap();
 }
 
