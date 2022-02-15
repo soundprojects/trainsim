@@ -48,6 +48,7 @@ impl Worker{
 
     }
 
+    ///Join is run when the window is closed. We pass a quit message to stop our worker loop from running
     pub fn join(self) -> std::thread::Result<()>{
         let _ = self.channel.send(WorkerMessage::Quit);
         self.worker_thread.join()
@@ -66,13 +67,14 @@ async fn worker_loop(mut r: UnboundedReceiver<WorkerMessage>,
     let mut counter: i32 = 0;
     let mut interval = interval(Duration::from_secs(1));
 
+    //This loop runs tick and then checks for messages, if there is one, run actions
     loop{
         let m = select!{
 
 
             _ = interval.tick() => {
                 //Increment counter and update UI until 10
-                if counter <= 10 {
+                if counter < 10 {
                 counter += 1;
                 handle.clone().upgrade_in_event_loop(move |h|
                 h.set_counter(SharedString::from(counter.to_string())));}
@@ -95,14 +97,18 @@ async fn worker_loop(mut r: UnboundedReceiver<WorkerMessage>,
 
             WorkerMessage::Counter(number) => {
                 counter = number;
-            handle.clone().upgrade_in_event_loop(move |h|
-            h.set_counter(SharedString::from(counter.to_string())));
+                handle.clone()
+                .upgrade_in_event_loop(move |h|
+                h.set_counter(SharedString::from(counter.to_string()))
+                );
             },
 
             WorkerMessage::Reset => {
                 counter = 0;
-                handle.clone().upgrade_in_event_loop(move |h|
-                h.set_counter(SharedString::from(counter.to_string())));
+                handle.clone()
+                .upgrade_in_event_loop(move |h|
+                h.set_counter(SharedString::from(counter.to_string()))
+                );
             },
         }
     }
