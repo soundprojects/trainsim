@@ -20,12 +20,12 @@ async fn main() {
         worker::worker_loop(r, t).await.unwrap();});
 
     let _recv_handle = tokio::spawn(async move {
-        while let Some(counter) = receiver.recv().await{
+        while let Some(workerdata) = receiver.recv().await{
             
             //update UI
             handle.clone()
                 .upgrade_in_event_loop(move |h|
-                h.set_counter(counter)
+                h.set_counter(workerdata.count)
                 );
             }
     });
