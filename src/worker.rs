@@ -1,6 +1,7 @@
 
+use tokio::time::Instant;
 use futures::future::{FutureExt};
-use tokio::{select, time::{interval}};
+use tokio::{select, time::{interval, interval_at}};
 use std::time::Duration;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::mpsc::UnboundedSender;
@@ -12,6 +13,7 @@ use tokio::sync::mpsc::UnboundedSender;
 pub struct WorkerData{
     pub count: i32
 }
+
 ///Worker Message Enumerator
 ///For now just contains Quit and Counter for updating our counter from the UI
 #[derive(Debug)]
@@ -29,6 +31,9 @@ pub async fn worker_loop(mut r: UnboundedReceiver<WorkerMessage>,
     let mut data = WorkerData{count:0};
     let mut interval = interval(Duration::from_secs(1));
 
+    //let mut now = Instant::now();
+    //let mut new_now;
+
     let channel = t.clone();
 
     //This loop runs tick and then checks for messages, if there is one, run actions
@@ -40,7 +45,13 @@ pub async fn worker_loop(mut r: UnboundedReceiver<WorkerMessage>,
                 //Increment counter and update UI until 10
                 if data.count < 10 {
                 data.count += 1;
-                println!("tick");
+
+                //show time differences between the ticks
+                // new_now = Instant::now();
+                // println!("{:?}", new_now.checked_duration_since(now));
+                // now = Instant::now();
+
+                //update ui
                 channel.send(data).unwrap();}
                 continue;
             }
@@ -60,14 +71,25 @@ pub async fn worker_loop(mut r: UnboundedReceiver<WorkerMessage>,
 
             WorkerMessage::Counter(number) => {
                 data.count = number;
+
+                //move interval point to round this up to a second
+                interval = set_new_interval();
                 channel.send(data).unwrap();
             },
 
             WorkerMessage::Reset => {
                 data.count = 0;
+                interval = set_new_interval();
                 channel.send(data).unwrap();
             },
         }
     }
+}
+
+pub fn set_new_interval() -> tokio::time::Interval{
+    //move interval point to round this up to a second
+    let now = Instant::now();
+    let interval = interval_at(now + Duration::from_secs(1), Duration::from_secs(1));
+    interval
 }
 

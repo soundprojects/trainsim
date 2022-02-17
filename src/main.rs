@@ -1,5 +1,5 @@
 mod worker;
-
+mod tests;
 
 //Tokio::main macro translates the main function back to a non-async function
 // .await calls are transformed to block_on to make for easy coding
