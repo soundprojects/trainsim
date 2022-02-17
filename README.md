@@ -1,5 +1,6 @@
 # Trainsim - a Rust app
 
+![example workflow](https://github.com/soundprojects/trainsim/actions/workflows/rust.yml/badge.svg)
 
 Trainsim is a simple train simulator written in Rust
 
