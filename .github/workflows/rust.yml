@@ -20,8 +20,8 @@ jobs:
           - stable
     steps:
       - uses: actions/checkout@v1
-      - name: Install xmllint
-        run: sudo apt-get install libxcb-shape0-dev && libxcb-xfixes0-dev
+      - name: Install Libxcb dependencies
+        run: sudo apt-get install libxcb-shape0-dev libxcb-xfixes0-dev
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
