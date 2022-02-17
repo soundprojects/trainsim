@@ -1,8 +1,9 @@
-use super::*;
+#[cfg(test)]
 use std::time::Duration;
 #[cfg(test)]
 use tokio::time::Instant;
-
+#[cfg(test)]
+use super::*;
 
 
 ///Test Set Interval
@@ -13,5 +14,6 @@ async fn test_set_interval() {
     let mut interval = worker::set_new_interval();
     interval.tick().await;
     let new_now = Instant::now();
-    assert!(new_now.checked_duration_since(now).unwrap() > Duration::from_millis(900) && new_now.checked_duration_since(now).unwrap() < Duration::from_millis(1100));
+    assert!(new_now.checked_duration_since(now).unwrap() > Duration::from_millis(900)
+    && new_now.checked_duration_since(now).unwrap() < Duration::from_millis(1100));
 }

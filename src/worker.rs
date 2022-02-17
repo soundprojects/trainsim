@@ -31,9 +31,6 @@ pub async fn worker_loop(mut r: UnboundedReceiver<WorkerMessage>,
     let mut data = WorkerData{count:0};
     let mut interval = interval(Duration::from_secs(1));
 
-    //let mut now = Instant::now();
-    //let mut new_now;
-
     let channel = t.clone();
 
     //This loop runs tick and then checks for messages, if there is one, run actions
@@ -45,11 +42,6 @@ pub async fn worker_loop(mut r: UnboundedReceiver<WorkerMessage>,
                 //Increment counter and update UI until 10
                 if data.count < 10 {
                 data.count += 1;
-
-                //show time differences between the ticks
-                // new_now = Instant::now();
-                // println!("{:?}", new_now.checked_duration_since(now));
-                // now = Instant::now();
 
                 //update ui
                 channel.send(data).unwrap();}
@@ -71,8 +63,6 @@ pub async fn worker_loop(mut r: UnboundedReceiver<WorkerMessage>,
 
             WorkerMessage::Counter(number) => {
                 data.count = number;
-
-                //move interval point to round this up to a second
                 interval = set_new_interval();
                 channel.send(data).unwrap();
             },
@@ -86,6 +76,10 @@ pub async fn worker_loop(mut r: UnboundedReceiver<WorkerMessage>,
     }
 }
 
+
+///Set New Interval
+///When doing an action where you want to 'restart' counting our interval
+///This rounds up to a second before our new tick() returns
 pub fn set_new_interval() -> tokio::time::Interval{
     //move interval point to round this up to a second
     let now = Instant::now();
