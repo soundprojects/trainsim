@@ -156,7 +156,7 @@ pub fn set_new_interval() -> tokio::time::Interval{
 ///A section is either active (a train is running on it) or it is inactive
 ///Sections have a distance in meters from left to right which we use to determine if our train is on it
 ///Random will be implemented later to set random distances for each section for more realistic tracks
-fn generate_sections(amount: usize, random: bool, total_distance: usize) -> Vec<Section>{
+pub fn generate_sections(amount: usize, random: bool, total_distance: usize) -> Vec<Section>{
 
     let mut collection :Vec<Section> = Vec::with_capacity(amount);
 

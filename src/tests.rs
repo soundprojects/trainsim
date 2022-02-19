@@ -17,3 +17,18 @@ async fn test_set_interval() {
     assert!(new_now.checked_duration_since(now).unwrap() > Duration::from_millis(900)
     && new_now.checked_duration_since(now).unwrap() < Duration::from_millis(1100));
 }
+
+
+///Test Generate Sections
+///Sections should always have a distance larger than 0 and no larger than the maximum distance
+#[test]
+    fn test_generate_sections(){
+        let collection = worker::generate_sections(2, true, 1000);
+
+        for i in 0..2{
+            println!("{}", collection[i].distance);
+
+            assert!(collection[i].distance > 0 );
+            assert!(collection[i].distance <= 1000);
+        }
+    }
