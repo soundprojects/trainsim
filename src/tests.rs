@@ -21,14 +21,16 @@ async fn test_set_interval() {
 
 ///Test Generate Sections
 ///Sections should always have a distance larger than 0 and no larger than the maximum distance
+///Check item count as well
 #[test]
     fn test_generate_sections(){
         let collection = worker::generate_sections(2, true, 1000);
 
-        for i in 0..2{
-            println!("{}", collection[i].distance);
+        assert_eq!(collection.len(), 2);
 
+        for i in 0..2{
             assert!(collection[i].distance > 0 );
             assert!(collection[i].distance <= 1000);
+            assert_eq!(collection[i].active, false);
         }
     }
