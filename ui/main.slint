@@ -17,10 +17,10 @@ import "./fonts/Avenir_85_Heavy.ttf";
         background:#000;
         default-font-size:24px;
         default-font-family:"Avenir Heavy";
-        min-width:500px;
-        min-height:500px;
-        preferred-width:500px;
-        preferred-height:500px;
+        min-width:700px;
+        min-height:700px;
+        preferred-width:700px;
+        preferred-height:700px;
 
         //properties
         property <int> counter : 0;
@@ -174,8 +174,9 @@ import "./fonts/Avenir_85_Heavy.ttf";
                     Rectangle{
 
                         border-color:white;
-                        width:250px;
+                        width:500px;
                         height: 250px;
+
 
                         Path{
                             fill:white;
@@ -184,12 +185,12 @@ import "./fonts/Avenir_85_Heavy.ttf";
 
                             MoveTo{
                                 x:0;
-                                y:10;
+                                y:15;
                             }
 
                             LineTo{
                                 x:0;
-                                y:-10;
+                                y:-15;
                             }
                         }
 
@@ -202,12 +203,12 @@ import "./fonts/Avenir_85_Heavy.ttf";
                                 stroke-width:2px;
                                 stroke: section.active ? yellow : white;
                                 MoveTo{
-                                    x:i * 50;
+                                    x:i * 100;
                                     y:0;
                                 }
                         
                                 LineTo{
-                                    x:50 + i * 50;
+                                    x:100 + i * 100;
                                     y:0;
                                 }
                         
@@ -223,15 +224,32 @@ import "./fonts/Avenir_85_Heavy.ttf";
                                 stroke: white;
 
                                 MoveTo{
-                                    x:50 + i * 50;
-                                    y:10;
+                                    x:100 + i * 100;
+                                    y:15;
                                 }
                         
                                 LineTo{
-                                    x:50 + i * 50;
-                                    y:-10;
+                                    x:100 + i * 100;
+                                    y:-15;
                                 }
                         
+                        }
+
+                        for section[i] in sections : Rectangle{
+                        if (section.active) : Rectangle { 
+                            background : #4e505c;
+                            width:60px;
+                            height:20px;
+
+                            x: 20px + 100px * i;
+                            y:-10px;
+                            HorizontalLayout { 
+                            alignment:center;
+
+                            Text{vertical-alignment:center;text: "1234"; color: white; font-size:14px;}
+                            }
+
+                            }
                         }
                         
                     }
