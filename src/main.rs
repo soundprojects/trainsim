@@ -1,6 +1,20 @@
 mod worker;
 mod tests;
 
+
+//Convert between our Section and the slint Section types <-- Ugly stuff
+impl From<worker::Section> for slint_generatedMainWindow::Section{
+    fn from(section: worker::Section) -> Self{
+
+        slint_generatedMainWindow::Section{
+            active: section.active,
+            train_number: section.train_number as i32,
+            distance_start: section.distance_start as i32,
+            distance_end: section.distance_end as i32}
+
+    }
+}
+
 //Tokio::main macro translates the main function back to a non-async function
 // .await calls are transformed to block_on to make for easy coding
 //Slint include modules allows use to import our external slint files using build.rs
@@ -24,8 +38,14 @@ async fn main() {
             
             //update UI
             handle.clone()
-                .upgrade_in_event_loop(move |h|
-                h.set_counter(workerdata.count)
+                .upgrade_in_event_loop(move |h| {
+                    h.set_counter(workerdata.count.try_into().unwrap());
+
+                    let mut sections :Vec<slint_generatedMainWindow::Section> = Vec::new();
+                    sections.extend(workerdata.track.sections.into_iter().map(From::from));
+
+                    h.set_sections(std::rc::Rc::new(slint::VecModel::from(sections)).into());
+                    }
                 );
             }
     });
@@ -41,9 +61,10 @@ async fn main() {
     window.on_set_counter({
         let channel = channel.clone();
         move |number| {
-        channel.send(worker::WorkerMessage::Counter(number)).unwrap();
+        channel.send(worker::WorkerMessage::Counter(number.try_into().unwrap())).unwrap();
         }
     });
+
 
     //run window
     window.run();

@@ -3,6 +3,14 @@ import { ScrollView, Button, CheckBox, SpinBox, Slider, GroupBox, LineEdit, Stan
 
 import "./fonts/Avenir_85_Heavy.ttf";
 
+    //structs <-- Is there a way to do this outside of UI?
+    export struct Section := {
+        active: bool,
+        train_number: int,
+        distance_start: int,
+        distance_end: int
+    }
+
     MainWindow := Window {
 
         title:"Train Simulator";
@@ -16,6 +24,7 @@ import "./fonts/Avenir_85_Heavy.ttf";
 
         //properties
         property <int> counter : 0;
+        property <[Section]> sections;
 
         //callbacks
         callback reset();
@@ -132,31 +141,100 @@ import "./fonts/Avenir_85_Heavy.ttf";
                         }
                     }
 
-                HorizontalLayout {  
+                    HorizontalLayout {  
 
-                    alignment:center;
+                        alignment:center;
 
-                    Rectangle{
-                       width:100px;
-                       height:30px;
-                       background:#4E505C;
-                       border-radius:15px;
+                        Rectangle{
+                           width:100px;
+                           height:30px;
+                           background:#4E505C;
+                           border-radius:15px;
 
-                       VerticalLayout {  
+                           VerticalLayout {  
 
-                           Text{
-                            text:"set 5";
-                            color:white;
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
-                           }
-                        }
+                               Text{
+                                text:"set 5";
+                                color:white;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                               }
+                            }
 
-                       TouchArea {  
-                       clicked => {root.set_counter(5)}
+                           TouchArea {  
+                           clicked => {root.set_counter(5)}
+                            }
                         }
                     }
                 }
+                HorizontalLayout{
+
+                alignment:center;
+                padding-top:50px;
+                    Rectangle{
+
+                        border-color:white;
+                        width:250px;
+                        height: 250px;
+
+                        Path{
+                            fill:white;
+                            viewbox-width: width/1px;
+                            viewbox-height: height/1px;
+
+                            MoveTo{
+                                x:0;
+                                y:10;
+                            }
+
+                            LineTo{
+                                x:0;
+                                y:-10;
+                            }
+                        }
+
+                        for section[i] in sections :
+
+                        Path{
+                                fill: section.active ? yellow : white;
+                                viewbox-width: width/1px;
+                                viewbox-height: height/1px;
+                                stroke-width:2px;
+                                stroke: section.active ? yellow : white;
+                                MoveTo{
+                                    x:i * 50;
+                                    y:0;
+                                }
+                        
+                                LineTo{
+                                    x:50 + i * 50;
+                                    y:0;
+                                }
+                        
+                        }
+
+                        for section[i] in sections :
+
+                        Path{
+                                fill:white;
+                                viewbox-width: parent.width/1px;
+                                viewbox-height: parent.height/1px;
+                                stroke-width:2px;
+                                stroke: white;
+
+                                MoveTo{
+                                    x:50 + i * 50;
+                                    y:10;
+                                }
+                        
+                                LineTo{
+                                    x:50 + i * 50;
+                                    y:-10;
+                                }
+                        
+                        }
+                        
+                    }
                 }
             }
         }

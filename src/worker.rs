@@ -11,7 +11,7 @@ use tokio::sync::mpsc::UnboundedSender;
 ///This struct holds the data that is passed between worker and UI
 #[derive(Debug, Clone)]
 pub struct WorkerData{
-    pub count: i32,
+    pub count: usize,
     pub train: Train,
     pub track: Track
 }
@@ -22,7 +22,7 @@ pub struct WorkerData{
 pub struct Train{
     pub train_number: i32,
     pub train_status: TrainStatus,
-    pub train_length: i32
+    pub train_length: usize
 }
 
 ///Train Track
@@ -31,7 +31,7 @@ pub struct Train{
 pub struct Track{
     pub origin: String,
     pub destination: String,
-    pub track_length: i32,
+    pub track_length: usize,
     pub sections: Vec<Section>
 }
 
@@ -39,7 +39,8 @@ pub struct Track{
 pub struct Section{
     pub active :bool,
     pub train_number :i32,
-    pub distance :usize
+    pub distance_start :usize,
+    pub distance_end :usize
 }
 
 ///Train Status Enumerator
@@ -53,7 +54,7 @@ pub enum TrainStatus{
 ///For now just contains Quit and Counter for updating our counter from the UI
 #[derive(Debug)]
 pub enum WorkerMessage{
-    Quit, Counter(i32), Reset,
+    Quit, Counter(usize), Reset
 }
 
 ///Worker loop keeps running our defined tasks until the program is quit
@@ -88,6 +89,8 @@ pub async fn worker_loop(mut r: UnboundedReceiver<WorkerMessage>,
                 //Run until time = 10
                 if data_ref.count < 10 {
 
+                //Increment
+                data_ref.count += 1;
                 //update train position
                 update_train_position(data_ref);
 
@@ -112,12 +115,14 @@ pub async fn worker_loop(mut r: UnboundedReceiver<WorkerMessage>,
             WorkerMessage::Counter(number) => {
                 data_ref.count = number;
                 interval = set_new_interval();
+                update_train_position(data_ref);
                 channel.send(data_ref.clone()).unwrap();
             },
 
             WorkerMessage::Reset => {
                 data_ref.count = 0;
                 interval = set_new_interval();
+                update_train_position(data_ref);
                 channel.send(data_ref.clone()).unwrap();
             },
         }
@@ -130,11 +135,46 @@ pub async fn worker_loop(mut r: UnboundedReceiver<WorkerMessage>,
 /// Train travels 100M / S (crazy fast)
 pub fn update_train_position(data: &mut WorkerData) -> &mut WorkerData{
 
-    let mut train = data.train;
+    let mut train = &mut data.train;
+    let track = &mut data.track;
 
-    //First tick? Start train
-    data.count += 1;
-    train.train_status = TrainStatus::Running;
+    //We move a 100M each tick, back of the train is one train length behind the position if train is not at the end
+    let position :usize = train.train_length + (data.count * 100);
+    
+    if position > track.track_length {println!("Done");return data}
+    let back_of_train = position - train.train_length;
+
+    println!("position {}", position);
+    //Check if the front or back of the train is one of the sections, that means it is active
+    for i in 0..track.sections.len(){
+
+        let section = &mut track.sections[i];
+        section.active = false;
+
+        if back_of_train > section.distance_start && back_of_train < section.distance_end
+        {
+            section.active = true;
+            section.train_number = train.train_number;
+        }
+
+        if position> section.distance_start && position < section.distance_end
+        {
+            section.active = true;
+            section.train_number = train.train_number;
+        }
+    }
+
+    //If we reached the end of the track, we've stopped
+    if position == track.track_length{
+        train.train_status = TrainStatus::Stopped;
+        println!("Got there!")
+    }
+    else if back_of_train == 0{
+        train.train_status = TrainStatus::Stopped;
+    }
+    else{
+        train.train_status = TrainStatus::Running
+    }
 
     data
 }
@@ -160,16 +200,24 @@ pub fn generate_sections(amount: usize, random: bool, total_distance: usize) -> 
 
     let mut collection :Vec<Section> = Vec::with_capacity(amount);
 
+    let mut current_distance :usize = 0;
+
     if random{
-        let _distance :usize = 0;
         for i in 1..amount+1{
-            collection.push(Section{active:false, train_number: 0, distance: (i * (total_distance / amount))})
+            let distance_end = i * (total_distance / amount);
+
+            collection.push(Section{active:false, train_number: 0, distance_start: current_distance,distance_end: distance_end});
+            
+            current_distance = distance_end;
         }
     }
     else{
         for i in 1..amount+1{
-            collection.push(Section{active:false, train_number: 0, distance: (i * (total_distance / amount))})
-        }
+            let distance_end = i * (total_distance / amount);
+
+            collection.push(Section{active:false, train_number: 0, distance_start: current_distance,distance_end: distance_end});
+            
+            current_distance = distance_end;        }
     }
 
     collection
