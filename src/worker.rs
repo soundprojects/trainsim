@@ -5,7 +5,7 @@ use tokio::{select, time::{interval, interval_at}};
 use std::time::Duration;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::mpsc::UnboundedSender;
-
+use crate::train::train_structs::*;
 
 ///Data structure
 ///This struct holds the data that is passed between worker and UI
@@ -14,40 +14,6 @@ pub struct WorkerData{
     pub count: usize,
     pub train: Train,
     pub track: Track
-}
-
-///Train structure
-///This struct holds the data that is passed between worker and UI
-#[derive(Debug, Copy, Clone)]
-pub struct Train{
-    pub train_number: i32,
-    pub train_status: TrainStatus,
-    pub train_length: usize
-}
-
-///Train Track
-///Struct to hold a simple train track
-#[derive(Debug, Clone)]
-pub struct Track{
-    pub origin: String,
-    pub destination: String,
-    pub track_length: usize,
-    pub sections: Vec<Section>
-}
-
-#[derive(Debug, Clone)]
-pub struct Section{
-    pub active :bool,
-    pub train_number :i32,
-    pub distance_start :usize,
-    pub distance_end :usize
-}
-
-///Train Status Enumerator
-///Status indicators for driving braking etc
-#[derive(Debug, Copy, Clone)]
-pub enum TrainStatus{
-    Stopped, Running
 }
 
 ///Worker Message Enumerator
@@ -66,9 +32,7 @@ pub async fn worker_loop(mut r: UnboundedReceiver<WorkerMessage>,
 
     let mut data = WorkerData{count:0,
     train: Train{train_number:1234, train_status: TrainStatus::Stopped, train_length: 100},
-    track: Track{origin: "A".to_string(),
-                destination:"B".to_string(),
-                track_length:1000,
+    track: Track{track_length:1000,
                 sections:generate_sections(5, true, 1000)
             }
     };

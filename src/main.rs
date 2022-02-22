@@ -1,10 +1,12 @@
 mod worker;
 mod tests;
+mod train;
 
+use train::*;
 
 //Convert between our Section and the slint Section types <-- Ugly stuff
-impl From<worker::Section> for slint_generatedMainWindow::Section{
-    fn from(section: worker::Section) -> Self{
+impl From<train_structs::Section> for slint_generatedMainWindow::Section{
+    fn from(section: train_structs::Section) -> Self{
 
         slint_generatedMainWindow::Section{
             active: section.active,

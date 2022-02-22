@@ -1,6 +1,8 @@
 #[cfg(test)]
 use crate::worker::*;
 #[cfg(test)]
+use crate::train::train_structs::*;
+#[cfg(test)]
 use std::time::Duration;
 #[cfg(test)]
 use tokio::time::Instant;
@@ -60,9 +62,7 @@ async fn test_set_interval() {
     //Create our test data
     let mut data = WorkerData{count:0,
         train: Train{train_number:1, train_status: TrainStatus::Stopped, train_length: 100},
-        track: Track{origin: "A".to_string(),
-                destination:"B".to_string(),
-                track_length:300,
+        track: Track{track_length:300,
                 sections:generate_sections(2, true, 300)
             }
         };

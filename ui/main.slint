@@ -179,29 +179,31 @@ import "./fonts/Avenir_85_Heavy.ttf";
 
 
                         Path{
-                            fill:white;
+                            fill:lightgray;
                             viewbox-width: width/1px;
                             viewbox-height: height/1px;
+                            stroke-width:2px;
+                            stroke: white;
 
                             MoveTo{
                                 x:0;
-                                y:15;
+                                y:5;
                             }
 
                             LineTo{
                                 x:0;
-                                y:-15;
+                                y:-5;
                             }
                         }
 
                         for section[i] in sections :
 
                         Path{
-                                fill: section.active ? yellow : white;
+                                fill: section.active ? yellow : lightgray;
                                 viewbox-width: width/1px;
                                 viewbox-height: height/1px;
                                 stroke-width:2px;
-                                stroke: section.active ? yellow : white;
+                                stroke: section.active ? yellow : lightgray;
                                 MoveTo{
                                     x:i * 100;
                                     y:0;
@@ -225,12 +227,12 @@ import "./fonts/Avenir_85_Heavy.ttf";
 
                                 MoveTo{
                                     x:100 + i * 100;
-                                    y:15;
+                                    y:5;
                                 }
                         
                                 LineTo{
                                     x:100 + i * 100;
-                                    y:-15;
+                                    y:-5;
                                 }
                         
                         }
