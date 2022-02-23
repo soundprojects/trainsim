@@ -2,31 +2,37 @@ mod worker;
 mod tests;
 mod train;
 
-use train::*;
+use eframe::{egui::CentralPanel, epi::App, run_native};
 
-//Convert between our Section and the slint Section types <-- Ugly stuff
-impl From<train_structs::Section> for slint_generatedMainWindow::Section{
-    fn from(section: train_structs::Section) -> Self{
+//use train::*;
+struct TrainSim{}
 
-        slint_generatedMainWindow::Section{
-            active: section.active,
-            train_number: section.train_number as i32,
-            distance_start: section.distance_start as i32,
-            distance_end: section.distance_end as i32}
+impl App for TrainSim{
+
+    fn update(&mut self, ctx: &eframe::egui::Context, frame: &eframe::epi::Frame) { 
+
+        CentralPanel::default().show(ctx, |ui| {
+            ui.label("Hiya");
+
+        });
+
+    }
+
+
+    fn name(&self) -> &str { 
+
+        "Train Simulator"
 
     }
 }
 
+
 //Tokio::main macro translates the main function back to a non-async function
 // .await calls are transformed to block_on to make for easy coding
-//Slint include modules allows use to import our external slint files using build.rs
-slint::include_modules!();
 #[tokio::main]
 async fn main() {
     
-    //start our Slint Window
-    let window = MainWindow::new();
-    let handle = window.as_weak();
+    //start our Egui window
 
     //create channels to communicate with worker_loop
     let (channel, r) = tokio::sync::mpsc::unbounded_channel();
@@ -36,40 +42,18 @@ async fn main() {
         worker::worker_loop(r, t).await.unwrap();});
 
     let _recv_handle = tokio::spawn(async move {
-        while let Some(workerdata) = receiver.recv().await{
+        while let Some(_workerdata) = receiver.recv().await{
             
             //update UI
-            handle.clone()
-                .upgrade_in_event_loop(move |h| {
-                    h.set_counter(workerdata.count.try_into().unwrap());
 
-                    let mut sections :Vec<slint_generatedMainWindow::Section> = Vec::new();
-                    sections.extend(workerdata.track.sections.into_iter().map(From::from));
-
-                    h.set_sections(std::rc::Rc::new(slint::VecModel::from(sections)).into());
-                    }
-                );
-            }
-    });
+    }});
 
     //assign callbacks
-    window.on_reset({
-        let channel = channel.clone();
-        move || {
-        channel.send(worker::WorkerMessage::Reset).unwrap();
-        }
-    });
 
-    window.on_set_counter({
-        let channel = channel.clone();
-        move |number| {
-        channel.send(worker::WorkerMessage::Counter(number.try_into().unwrap())).unwrap();
-        }
-    });
 
 
     //run window
-    window.run();
+    run_native(app, native_options);
 
     //window is closed, quit worker loop
     channel.send(worker::WorkerMessage::Quit).unwrap();
