@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use std::hash::Hash;
+
 ///Train structure
 ///This struct holds the data that is passed between worker and UI
 #[derive(Debug, Copy, Clone)]
@@ -20,6 +23,7 @@ pub struct Track {
 #[derive(Debug, Clone)]
 pub struct Switch {
     pub sections: Vec<Section>,
+    pub switch_type: SwitchType,
 }
 
 #[derive(Debug, Clone)]
@@ -36,4 +40,40 @@ pub struct Section {
 pub enum TrainStatus {
     Stopped,
     Running,
+}
+
+///Switch Type Enumerator
+///switch types and directions
+#[derive(Debug, Copy, Clone)]
+pub enum SwitchType {
+    LeftSplitUp,
+    LeftSplitDown,
+    RightSplitUp,
+    RightSplitDown,
+}
+
+pub trait Identifiable {
+    fn get_id() {}
+}
+
+#[derive(Debug, Clone)]
+pub struct TrainSystem<K: Identifiable, V: Identifiable> {
+    pub connections: HashMap<i32, i32>,
+    pub structures: HashMap<K, V>,
+}
+
+impl<K, V> TrainSystem<K, V>
+where
+    K: Identifiable + Eq + Hash,
+    V: Identifiable,
+{
+    fn new(&mut self) -> &Self {
+        self.connections = HashMap::new();
+        self.structures = HashMap::new();
+        self
+    }
+
+    fn connect(&mut self, key: K, value: V) {
+        self.structures.insert(key, value);
+    }
 }

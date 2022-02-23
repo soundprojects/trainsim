@@ -23,6 +23,7 @@ pub enum WorkerMessage{
     Quit, Counter(usize), Reset
 }
 
+
 ///Worker loop keeps running our defined tasks until the program is quit
 ///it allows for the UI to be updated through our weak handle
 ///sender and receivers are used for callback communication and other signals

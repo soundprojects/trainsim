@@ -1,0 +1,104 @@
+export TrainSystem := Rectangle{}
+
+//structs
+export struct Section := {
+        active: bool,
+        train_number: int,
+        distance_start: int,
+        distance_end: int
+}
+
+//components
+export Track := HorizontalLayout{
+				
+				property <[Section]> sections;
+				property <brush> color;
+
+                alignment:center;
+                padding-top:50px;
+                    Rectangle{
+
+                        border-color:white;
+                        width:500px;
+                        height: 250px;
+
+
+                        Path{
+                            fill:lightgray;
+                            viewbox-width: width/1px;
+                            viewbox-height: height/1px;
+                            stroke-width:2px;
+                            stroke: white;
+
+                            MoveTo{
+                                x:0;
+                                y:5;
+                            }
+
+                            LineTo{
+                                x:0;
+                                y:-5;
+                            }
+                        }
+
+                        for section[i] in sections :
+
+                        Path{
+                                fill: section.active ? yellow : lightgray;
+                                viewbox-width: width/1px;
+                                viewbox-height: height/1px;
+                                stroke-width:2px;
+                                stroke: section.active ? yellow : lightgray;
+                                MoveTo{
+                                    x:i * 100;
+                                    y:0;
+                                }
+                        
+                                LineTo{
+                                    x:100 + i * 100;
+                                    y:0;
+                                }
+                        
+                        }
+
+                        for section[i] in sections :
+
+                        Path{
+                                fill:white;
+                                viewbox-width: parent.width/1px;
+                                viewbox-height: parent.height/1px;
+                                stroke-width:2px;
+                                stroke: white;
+
+                                MoveTo{
+                                    x:100 + i * 100;
+                                    y:5;
+                                }
+                        
+                                LineTo{
+                                    x:100 + i * 100;
+                                    y:-5;
+                                }
+                        
+                        }
+
+                        for section[i] in sections : Rectangle{
+
+                        if (section.active) : Rectangle { 
+                            background : root.color;
+                            width:60px;
+                            height:20px;
+
+                            x: 20px + 100px * i;
+                            y:-10px;
+                            HorizontalLayout { 
+                            	alignment:center;
+
+                            	Text{vertical-alignment:center;text: "1234"; color: white; font-size:14px;}
+                            	}
+
+                            }
+                        }
+                        
+                    }
+                }

@@ -1,20 +1,16 @@
 import { ScrollView, Button, CheckBox, SpinBox, Slider, GroupBox, LineEdit, StandardListView,
     ComboBox, HorizontalBox, VerticalBox, GridBox, TabWidget, TextEdit, AboutSlint } from "std-widgets.slint";
 
+import {TrainSystem, Track, Section} from "train_systems.slint";
+import {Skin, MenuBar, CustomButton} from "components.slint";
+
 import "./fonts/Avenir_85_Heavy.ttf";
 
-    //structs <-- Is there a way to do this outside of UI?
-    export struct Section := {
-        active: bool,
-        train_number: int,
-        distance_start: int,
-        distance_end: int
-    }
 
     MainWindow := Window {
 
         title:"Train Simulator";
-        background:#000;
+        background: Skin.background;
         default-font-size:24px;
         default-font-family:"Avenir Heavy";
         min-width:700px;
@@ -35,29 +31,12 @@ import "./fonts/Avenir_85_Heavy.ttf";
             spacing:2px;
             alignment:stretch;
 
-            Rectangle{
-
-                background:#3A3C49;
-                height:30px;
-                VerticalLayout{   
-                width:parent.width;
-                height:parent.height; 
-
-                Text {
-
-                    text: "TRAIN SIMULATOR";
-                    font-size:12px;
-                    color: white;
-                    horizontal-alignment:center;
-                    vertical-alignment:center;
-                }
-            }
-        }
+        MenuBar{title: "Train Simulator"; background: Skin.dark;}
 
 
         Rectangle{
 
-            background:#3A3C49;
+            background:Skin.dark;
             width: parent.width;
             height:parent.height;
             border-radius:5px;
@@ -92,11 +71,11 @@ import "./fonts/Avenir_85_Heavy.ttf";
                     Rectangle{
 
                         border-radius:5px;
-                        background:#2C2F38;
+                        background: Skin.darkshadow;
                         width:75px;
                         height:75px;
                         drop-shadow-offset-y: 10px;
-                        drop-shadow-color:#2C2F38;
+                        drop-shadow-color: Skin.darkshadow;
                         drop-shadow-blur:10px;
 
 
@@ -120,142 +99,13 @@ import "./fonts/Avenir_85_Heavy.ttf";
 
                     alignment:center;
 
-                    Rectangle{
-                       width:100px;
-                       height:30px;
-                       background:#4E505C;
-                       border-radius:15px;
+                    CustomButton{text:"reset"; background:Skin.medium;clicked => {root.reset();}}
 
-                       VerticalLayout {  
-
-                           Text{
-                            text:"reset";
-                            color:white;
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
-                           }
-                        }
-
-                       TouchArea {  
-                       clicked => {root.reset()}
-                        }
-                    }
-
-                    HorizontalLayout {  
-
-                        alignment:center;
-
-                        Rectangle{
-                           width:100px;
-                           height:30px;
-                           background:#4E505C;
-                           border-radius:15px;
-
-                           VerticalLayout {  
-
-                               Text{
-                                text:"set 5";
-                                color:white;
-                                horizontal-alignment: center;
-                                vertical-alignment: center;
-                               }
-                            }
-
-                           TouchArea {  
-                           clicked => {root.set_counter(5)}
-                            }
-                        }
-                    }
+                    CustomButton { text:"set 5"; background:Skin.medium; clicked => {root.set-counter(5);} }
                 }
-                HorizontalLayout{
 
-                alignment:center;
-                padding-top:50px;
-                    Rectangle{
+                Track{sections: root.sections;color: Skin.medium;}
 
-                        border-color:white;
-                        width:500px;
-                        height: 250px;
-
-
-                        Path{
-                            fill:lightgray;
-                            viewbox-width: width/1px;
-                            viewbox-height: height/1px;
-                            stroke-width:2px;
-                            stroke: white;
-
-                            MoveTo{
-                                x:0;
-                                y:5;
-                            }
-
-                            LineTo{
-                                x:0;
-                                y:-5;
-                            }
-                        }
-
-                        for section[i] in sections :
-
-                        Path{
-                                fill: section.active ? yellow : lightgray;
-                                viewbox-width: width/1px;
-                                viewbox-height: height/1px;
-                                stroke-width:2px;
-                                stroke: section.active ? yellow : lightgray;
-                                MoveTo{
-                                    x:i * 100;
-                                    y:0;
-                                }
-                        
-                                LineTo{
-                                    x:100 + i * 100;
-                                    y:0;
-                                }
-                        
-                        }
-
-                        for section[i] in sections :
-
-                        Path{
-                                fill:white;
-                                viewbox-width: parent.width/1px;
-                                viewbox-height: parent.height/1px;
-                                stroke-width:2px;
-                                stroke: white;
-
-                                MoveTo{
-                                    x:100 + i * 100;
-                                    y:5;
-                                }
-                        
-                                LineTo{
-                                    x:100 + i * 100;
-                                    y:-5;
-                                }
-                        
-                        }
-
-                        for section[i] in sections : Rectangle{
-                        if (section.active) : Rectangle { 
-                            background : #4e505c;
-                            width:60px;
-                            height:20px;
-
-                            x: 20px + 100px * i;
-                            y:-10px;
-                            HorizontalLayout { 
-                            alignment:center;
-
-                            Text{vertical-alignment:center;text: "1234"; color: white; font-size:14px;}
-                            }
-
-                            }
-                        }
-                        
-                    }
-                }
             }
         }
     }
