@@ -74,8 +74,9 @@ pub async fn worker_loop(
             }
 
             m = r.recv().fuse() => {
+
                 match m {
-                    None => return Ok(()),
+                    None => {return Ok(())},
                     Some(m) => m,
                 }
             }

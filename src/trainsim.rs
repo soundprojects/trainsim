@@ -1,5 +1,8 @@
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
+
 use crate::utils::ColorHex;
-use crate::worker::{WorkerData, WorkerMessage};
+use crate::worker::{self, WorkerMessage};
 use eframe::{
     egui::CentralPanel,
     egui::Color32,
@@ -9,14 +12,15 @@ use eframe::{
     epaint::{FontId, Rounding, Stroke, Vec2},
     epi::App,
 };
-use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
+use tokio::sync::mpsc::UnboundedSender;
+use tokio::task::JoinHandle;
 
 //Application struct used by Egui. Contains Tx/Rx for communicating with Worker Loop
 pub struct TrainSim {
-    pub count: usize,
-    pub ui_transmitter: UnboundedSender<WorkerMessage>,
-    pub ui_receiver: UnboundedReceiver<WorkerData>,
-    pub dirty: bool,
+    pub count: Arc<AtomicUsize>,
+    worker_handle: Option<JoinHandle<()>>,
+    join_handle: Option<JoinHandle<()>>,
+    ui_transmitter: Option<UnboundedSender<WorkerMessage>>,
 }
 
 //Implement App trait for our struct
@@ -25,31 +29,39 @@ impl App for TrainSim {
     fn setup(
         &mut self,
         ctx: &eframe::egui::Context,
-        _frame: &eframe::epi::Frame,
+        frame: &eframe::epi::Frame,
         _storage: Option<&dyn eframe::epi::Storage>,
     ) {
+        //assign custom fonts and styles
         self.configure_fonts(ctx);
+
+        //create channels to communicate with worker_loop
+        let (ui_transmitter, worker_receiver) = tokio::sync::mpsc::unbounded_channel();
+        let (worker_transmitter, mut ui_receiver) = tokio::sync::mpsc::unbounded_channel();
+
+        //assign ui transmitter so we can talk to worker loop from our update function
+        self.ui_transmitter = Some(ui_transmitter);
+
+        //start worker loop
+        self.worker_handle = Some(tokio::spawn(async move {
+            worker::worker_loop(worker_receiver, worker_transmitter)
+                .await
+                .unwrap();
+        }));
+
+        //Retrieve weak handles to our data and frame so we can respond if worker loop sends us a message with new data
+        let data = self.count.clone();
+        let frame_handle = frame.clone();
+        self.join_handle = Some(tokio::spawn(async move {
+            while let Some(workerdata) = ui_receiver.recv().await {
+                data.store(workerdata.count, Ordering::SeqCst);
+                frame_handle.request_repaint();
+            }
+        }));
     }
 
     //UI update
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &eframe::epi::Frame) {
-        if self.dirty {
-            //Redraw so incoming messages also update the UI, not just widgets/mouse
-            ctx.request_repaint();
-            self.dirty = false;
-        }
-
-        //Check for messages from our worker loop <-- This is called many times, can we do this differently?
-        match self.ui_receiver.try_recv() {
-            Ok(data) => {
-                self.count = data.count;
-                self.dirty = true;
-            }
-            Err(_e) => {
-                //println!("Error receiving message {}", e);
-            }
-        };
-
         let frame = Frame::none().fill(Color32::from_hex("#3A3C49").unwrap());
 
         CentralPanel::default().frame(frame).show(ctx, |ui| {
@@ -64,18 +76,22 @@ impl App for TrainSim {
 
                 ui.add_space(10.0);
 
-                ui.label(self.count.to_string());
-
+                ui.label(self.count.clone().load(Ordering::SeqCst).to_string());
                 ui.add_space(10.0);
 
                 if ui.button("reset").clicked() {
-                    self.ui_transmitter.send(WorkerMessage::Reset).unwrap();
+                    if let Some(tx) = &self.ui_transmitter {
+                        tx.send(WorkerMessage::Reset).unwrap();
+                    }
                 }
 
                 ui.add_space(10.0);
 
                 if ui.button("set 5").clicked() {
-                    self.ui_transmitter.send(WorkerMessage::Counter(5)).unwrap();
+                    if let Some(tx) = &self.ui_transmitter {
+                        tx.send(WorkerMessage::Counter(5)).unwrap();
+                        Context::default().request_repaint();
+                    }
                 }
             });
         });
@@ -88,21 +104,20 @@ impl App for TrainSim {
 
     //Quit our worker thread upon exiting window
     fn on_exit(&mut self) {
-        self.ui_transmitter.send(WorkerMessage::Quit).unwrap();
+        if let Some(tx) = &self.ui_transmitter {
+            tx.send(WorkerMessage::Quit).unwrap();
+        }
         println!("Program is quitting");
     }
 }
 
 impl TrainSim {
-    pub fn new(
-        ui_transmitter: UnboundedSender<WorkerMessage>,
-        ui_receiver: UnboundedReceiver<WorkerData>,
-    ) -> TrainSim {
+    pub fn new() -> TrainSim {
         TrainSim {
-            count: 0,
-            ui_transmitter: ui_transmitter,
-            ui_receiver: ui_receiver,
-            dirty: false,
+            count: Arc::new(AtomicUsize::new(0)),
+            worker_handle: None,
+            join_handle: None,
+            ui_transmitter: None,
         }
     }
 
