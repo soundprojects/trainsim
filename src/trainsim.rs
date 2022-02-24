@@ -16,6 +16,7 @@ pub struct TrainSim {
     pub count: usize,
     pub ui_transmitter: UnboundedSender<WorkerMessage>,
     pub ui_receiver: UnboundedReceiver<WorkerData>,
+    pub dirty: bool,
 }
 
 //Implement App trait for our struct
@@ -32,13 +33,17 @@ impl App for TrainSim {
 
     //UI update
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &eframe::epi::Frame) {
-        //Redraw so incoming messages also update the UI, not just widgets/mouse
-        ctx.request_repaint();
+        if self.dirty {
+            //Redraw so incoming messages also update the UI, not just widgets/mouse
+            ctx.request_repaint();
+            self.dirty = false;
+        }
 
         //Check for messages from our worker loop <-- This is called many times, can we do this differently?
         match self.ui_receiver.try_recv() {
             Ok(data) => {
                 self.count = data.count;
+                self.dirty = true;
             }
             Err(_e) => {
                 //println!("Error receiving message {}", e);
@@ -97,6 +102,7 @@ impl TrainSim {
             count: 0,
             ui_transmitter: ui_transmitter,
             ui_receiver: ui_receiver,
+            dirty: false,
         }
     }
 
