@@ -1,5 +1,5 @@
-use std::collections::HashMap;
-use std::hash::Hash;
+// use std::collections::HashMap;
+// use std::hash::Hash;
 
 ///Train structure
 ///This struct holds the data that is passed between worker and UI
@@ -20,11 +20,11 @@ pub struct Track {
 
 ///Switch
 ///Struct to hold a simple switch
-#[derive(Debug, Clone)]
-pub struct Switch {
-    pub sections: Vec<Section>,
-    pub switch_type: SwitchType,
-}
+// #[derive(Debug, Clone)]
+// pub struct Switch {
+//     pub sections: Vec<Section>,
+//     pub switch_type: SwitchType,
+// }
 
 #[derive(Debug, Clone)]
 pub struct Section {
@@ -44,36 +44,36 @@ pub enum TrainStatus {
 
 ///Switch Type Enumerator
 ///switch types and directions
-#[derive(Debug, Copy, Clone)]
-pub enum SwitchType {
-    LeftSplitUp,
-    LeftSplitDown,
-    RightSplitUp,
-    RightSplitDown,
-}
+//#[derive(Debug, Copy, Clone)]
+// pub enum SwitchType {
+//     LeftSplitUp,
+//     LeftSplitDown,
+//     RightSplitUp,
+//     RightSplitDown,
+// }
 
 pub trait Identifiable {
     fn get_id() {}
 }
 
-#[derive(Debug, Clone)]
-pub struct TrainSystem<K: Identifiable, V: Identifiable> {
-    pub connections: HashMap<i32, i32>,
-    pub structures: HashMap<K, V>,
-}
+// #[derive(Debug, Clone)]
+// pub struct TrainSystem<K: Identifiable, V: Identifiable> {
+//     pub connections: HashMap<i32, i32>,
+//     pub structures: HashMap<K, V>,
+// }
 
-impl<K, V> TrainSystem<K, V>
-where
-    K: Identifiable + Eq + Hash,
-    V: Identifiable,
-{
-    fn new(&mut self) -> &Self {
-        self.connections = HashMap::new();
-        self.structures = HashMap::new();
-        self
-    }
+// impl<K, V> TrainSystem<K, V>
+// where
+//     K: Identifiable + Eq + Hash,
+//     V: Identifiable,
+// {
+//     fn new(&mut self) -> &Self {
+//         self.connections = HashMap::new();
+//         self.structures = HashMap::new();
+//         self
+//     }
 
-    fn connect(&mut self, key: K, value: V) {
-        self.structures.insert(key, value);
-    }
-}
+//     fn connect(&mut self, key: K, value: V) {
+//         self.structures.insert(key, value);
+//     }
+// }

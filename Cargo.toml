@@ -10,3 +10,4 @@ edition = "2021"
 futures = "0.3.21"
 tokio = { version = "1.15", features = ["full", "tracing", "test-util"] }
 eframe = "0.17.0"
+colorsys = "0.6.5"

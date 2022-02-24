@@ -1,14 +1,17 @@
 #[cfg(test)]
-use crate::worker::*;
+use super::*;
 #[cfg(test)]
 use crate::train::train_structs::*;
+#[cfg(test)]
+use crate::utils::*;
+#[cfg(test)]
+use crate::worker::*;
+#[cfg(test)]
+use eframe::epaint::Color32;
 #[cfg(test)]
 use std::time::Duration;
 #[cfg(test)]
 use tokio::time::Instant;
-#[cfg(test)]
-use super::*;
-
 
 ///Test Set Interval
 ///Set interval creates a new interval and should make the time between the previous instant and the new tick between 900 - 1100 ms
@@ -18,29 +21,29 @@ async fn test_set_interval() {
     let mut interval = worker::set_new_interval();
     interval.tick().await;
     let new_now = Instant::now();
-    assert!(new_now.checked_duration_since(now).unwrap() > Duration::from_millis(900)
-    && new_now.checked_duration_since(now).unwrap() < Duration::from_millis(1100));
+    assert!(
+        new_now.checked_duration_since(now).unwrap() > Duration::from_millis(900)
+            && new_now.checked_duration_since(now).unwrap() < Duration::from_millis(1100)
+    );
 }
-
 
 ///Test Generate Sections
 ///Sections should always have a distance larger than 0 and no larger than the maximum distance
 ///Check item count as well
 #[test]
-    fn test_generate_sections(){
-        let collection = worker::generate_sections(2, true, 1000);
+fn test_generate_sections() {
+    let collection = worker::generate_sections(2, true, 1000);
 
-        assert_eq!(collection.len(), 2);
+    assert_eq!(collection.len(), 2);
 
-        for i in 0..2{
-            let item = &collection[i];
-            assert!(item.distance_start < item.distance_end);
-            assert!(item.distance_end > 0 );
-            assert!(item.distance_end <= 1000);
-            assert_eq!(item.active, false);
-        }
+    for i in 0..2 {
+        let item = &collection[i];
+        assert!(item.distance_start < item.distance_end);
+        assert!(item.distance_end > 0);
+        assert!(item.distance_end <= 1000);
+        assert_eq!(item.active, false);
     }
-
+}
 
 ///Test Update Train Position
 ///Train position and back of train should be positive values, within track length where position is a train length larger than back of train
@@ -57,17 +60,22 @@ async fn test_set_interval() {
 ///[---------|----||||||]
 ///Count = 3 should be the same as previous so check for no changes
 #[test]
-    fn test_update_train_position(){
-    
+fn test_update_train_position() {
     //Create our test data
-    let mut data = WorkerData{count:0,
-        train: Train{train_number:1, train_status: TrainStatus::Stopped, train_length: 100},
-        track: Track{track_length:300,
-                sections:generate_sections(2, true, 300)
-            }
-        };
+    let mut data = WorkerData {
+        count: 0,
+        train: Train {
+            train_number: 1,
+            train_status: TrainStatus::Stopped,
+            train_length: 100,
+        },
+        track: Track {
+            track_length: 300,
+            sections: generate_sections(2, true, 300),
+        },
+    };
 
-    //Go to next update so our sections are properly active 
+    //Go to next update so our sections are properly active
     update_train_position(&mut data);
 
     //Count = 0
@@ -76,9 +84,8 @@ async fn test_set_interval() {
     assert_eq!(data.track.sections[0].active, true);
     assert_eq!(data.track.sections[1].active, false);
 
-
     //Increment and go to next update
-    data.count +=1 ;
+    data.count += 1;
     update_train_position(&mut data);
 
     //Count = 1
@@ -88,7 +95,7 @@ async fn test_set_interval() {
     assert_eq!(data.track.sections[1].active, true);
 
     //Go to final update
-    data.count +=1 ;
+    data.count += 1;
     update_train_position(&mut data);
 
     //Count = 2
@@ -98,7 +105,7 @@ async fn test_set_interval() {
     assert_eq!(data.track.sections[1].active, true);
 
     //Check for same status
-    data.count +=1 ;
+    data.count += 1;
     update_train_position(&mut data);
 
     //Count = 3
@@ -106,6 +113,12 @@ async fn test_set_interval() {
 
     assert_eq!(data.track.sections[0].active, false);
     assert_eq!(data.track.sections[1].active, true);
+}
 
-
-    }
+#[test]
+fn test_color() {
+    let blue = Color32::BLUE;
+    let hex = blue.to_hex();
+    assert_eq!(hex, "#0000ff");
+    assert_eq!(Color32::BLUE, Color32::from_hex_panic(&hex));
+}
