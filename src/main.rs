@@ -1,4 +1,8 @@
 use eframe::egui;
+use eframe::epaint::FontId;
+use eframe::epaint::Rounding;
+use eframe::epaint::Stroke;
+use eframe::epaint::Vec2;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::mpsc::UnboundedSender;
 mod tests;
@@ -9,8 +13,7 @@ mod worker;
 use eframe::{
     egui::CentralPanel,
     egui::Context,
-    egui::{FontData, FontDefinitions},
-    epaint::FontFamily,
+    egui::{FontData, FontDefinitions, FontFamily, TextStyle},
     epi::App,
     run_native, NativeOptions,
 };
@@ -51,15 +54,23 @@ impl App for TrainSim {
 
         let frame = egui::Frame::none().fill(egui::Color32::from_hex("#3A3C49").unwrap());
         CentralPanel::default().frame(frame).show(ctx, |ui| {
-            ui.label(self.count.to_string());
+            ui.vertical_centered(|ui| {
+                ui.add_space(10.0);
 
-            if ui.button("reset").clicked() {
-                self.ui_transmitter.send(WorkerMessage::Reset).unwrap();
-            }
+                ui.label(self.count.to_string());
 
-            if ui.button("set 5").clicked() {
-                self.ui_transmitter.send(WorkerMessage::Counter(5)).unwrap();
-            }
+                ui.add_space(10.0);
+
+                if ui.button("reset").clicked() {
+                    self.ui_transmitter.send(WorkerMessage::Reset).unwrap();
+                }
+
+                ui.add_space(10.0);
+
+                if ui.button("set 5").clicked() {
+                    self.ui_transmitter.send(WorkerMessage::Counter(5)).unwrap();
+                }
+            });
         });
     }
 
@@ -98,6 +109,40 @@ impl TrainSim {
             .insert(FontFamily::Proportional, vec!["Avenir".to_owned()]);
 
         ctx.set_fonts(font_def);
+
+        let mut style: egui::Style = (*ctx.style()).clone();
+
+        style.spacing.button_padding = Vec2::new(60.0, 20.0);
+        style.visuals.widgets.inactive.rounding = Rounding {
+            nw: 15.0,
+            ne: 15.0,
+            sw: 15.0,
+            se: 15.0,
+        };
+        style.visuals.widgets.inactive.bg_fill = egui::Color32::from_hex("#4e505c").unwrap();
+        style.visuals.widgets.inactive.fg_stroke = Stroke {
+            width: 1.0,
+            color: egui::Color32::from_hex("#FFFFFF").unwrap(),
+        };
+        style.visuals.widgets.noninteractive.fg_stroke = Stroke {
+            width: 1.0,
+            color: egui::Color32::from_hex("#FFFFFF").unwrap(),
+        };
+        style.text_styles.insert(
+            TextStyle::Body,
+            FontId {
+                size: 30.0,
+                family: FontFamily::Proportional,
+            },
+        );
+        style.text_styles.insert(
+            TextStyle::Button,
+            FontId {
+                size: 30.0,
+                family: FontFamily::Proportional,
+            },
+        );
+        ctx.set_style(style);
     }
 }
 
