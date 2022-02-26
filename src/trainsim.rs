@@ -119,62 +119,62 @@ impl App for TrainSim {
                                 let stroke_yellow = Stroke::new(2.0, Color32::YELLOW);
 
                                 //Draw our track
-                                let sections = &data.track.sections;
+                                // let sections = &data.track.sections;
 
-                                for (i, section) in sections.into_iter().enumerate() {
-                                    let index = i as f32;
-                                    let offset = index * 100.0;
-                                    let center_y = response.rect.height() / 2.0;
-                                    let div_low = center_y - 5.0;
-                                    let div_hi = center_y + 5.0;
-                                    //Draw section divider
-                                    let divider = PathShape::line(
-                                        vec![
-                                            to_screen.transform_pos(Pos2::new(offset, div_low)),
-                                            to_screen.transform_pos(Pos2::new(offset, div_hi)),
-                                        ],
-                                        stroke_white,
-                                    );
+                                // for (i, section) in sections.into_iter().enumerate() {
+                                //     let index = i as f32;
+                                //     let offset = index * 100.0;
+                                //     let center_y = response.rect.height() / 2.0;
+                                //     let div_low = center_y - 5.0;
+                                //     let div_hi = center_y + 5.0;
+                                //     //Draw section divider
+                                //     let divider = PathShape::line(
+                                //         vec![
+                                //             to_screen.transform_pos(Pos2::new(offset, div_low)),
+                                //             to_screen.transform_pos(Pos2::new(offset, div_hi)),
+                                //         ],
+                                //         stroke_white,
+                                //     );
 
-                                    let section_line = PathShape::line(
-                                        vec![
-                                            to_screen.transform_pos(Pos2::new(offset, center_y)),
-                                            to_screen
-                                                .transform_pos(Pos2::new(offset + 100.0, center_y)),
-                                        ],
-                                        if section.active {
-                                            stroke_yellow
-                                        } else {
-                                            stroke_white
-                                        },
-                                    );
+                                //     let section_line = PathShape::line(
+                                //         vec![
+                                //             to_screen.transform_pos(Pos2::new(offset, center_y)),
+                                //             to_screen
+                                //                 .transform_pos(Pos2::new(offset + 100.0, center_y)),
+                                //         ],
+                                //         if section.active {
+                                //             stroke_yellow
+                                //         } else {
+                                //             stroke_white
+                                //         },
+                                //     );
 
-                                    //Draw a final divider at the end of the track
-                                    if i == sections.len() - 1 {
-                                        let last_divider = PathShape::line(
-                                            vec![
-                                                to_screen.transform_pos(Pos2::new(
-                                                    offset + 100.0,
-                                                    div_low,
-                                                )),
-                                                to_screen.transform_pos(Pos2::new(
-                                                    offset + 100.0,
-                                                    div_hi,
-                                                )),
-                                            ],
-                                            stroke_white,
-                                        );
-                                        lines.push(last_divider);
-                                    }
+                                //     //Draw a final divider at the end of the track
+                                //     if i == sections.len() - 1 {
+                                //         let last_divider = PathShape::line(
+                                //             vec![
+                                //                 to_screen.transform_pos(Pos2::new(
+                                //                     offset + 100.0,
+                                //                     div_low,
+                                //                 )),
+                                //                 to_screen.transform_pos(Pos2::new(
+                                //                     offset + 100.0,
+                                //                     div_hi,
+                                //                 )),
+                                //             ],
+                                //             stroke_white,
+                                //         );
+                                //         lines.push(last_divider);
+                                //     }
 
-                                    lines.push(divider);
-                                    lines.push(section_line);
-                                }
+                                //     lines.push(divider);
+                                //     lines.push(section_line);
+                                // }
 
-                                //paint points
-                                for line in lines {
-                                    painter.add(line);
-                                }
+                                // //paint points
+                                // for line in lines {
+                                //     painter.add(line);
+                                // }
                             });
                         // if ui.button("reset").clicked() {
                         //     if let Some(tx) = &self.ui_transmitter {

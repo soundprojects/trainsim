@@ -59,62 +59,93 @@ fn test_generate_sections() {
 ///[---------|----------]
 ///[---------|----||||||]
 ///Count = 3 should be the same as previous so check for no changes
+//#[test]
+// fn test_update_train_position() {
+//     //Create our test data
+//     let mut data = WorkerData {
+//         count: 0,
+//         train_system: TrainSystem::new(),
+//     };
+
+//     //Go to next update so our sections are properly active
+//     update_train_position(&mut data);
+
+//     //Count = 0
+//     assert!(matches!(data.train.train_status, TrainStatus::Stopped));
+
+//     assert_eq!(data.track.sections[0].active, true);
+//     assert_eq!(data.track.sections[1].active, false);
+
+//     //Increment and go to next update
+//     data.count += 1;
+//     update_train_position(&mut data);
+
+//     //Count = 1
+//     assert!(matches!(data.train.train_status, TrainStatus::Running));
+
+//     assert_eq!(data.track.sections[0].active, true);
+//     assert_eq!(data.track.sections[1].active, true);
+
+//     //Go to final update
+//     data.count += 1;
+//     update_train_position(&mut data);
+
+//     //Count = 2
+//     assert!(matches!(data.train.train_status, TrainStatus::Stopped));
+
+//     assert_eq!(data.track.sections[0].active, false);
+//     assert_eq!(data.track.sections[1].active, true);
+
+//     //Check for same status
+//     data.count += 1;
+//     update_train_position(&mut data);
+
+//     //Count = 3
+//     assert!(matches!(data.train.train_status, TrainStatus::Stopped));
+
+//     assert_eq!(data.track.sections[0].active, false);
+//     assert_eq!(data.track.sections[1].active, true);
+// }
+
+///Test Train System Struct
+///This struct does some manual adding to hashmaps for structures pins and connections
+/// Check that the assignments correspond to the idx's generated for the structures and they match up with pin idx's in our hashmaps
 #[test]
-fn test_update_train_position() {
-    //Create our test data
-    let mut data = WorkerData {
-        count: 0,
-        train: Train {
-            train_number: 1,
-            train_status: TrainStatus::Stopped,
-            train_length: 100,
-        },
-        track: Track {
-            track_length: 300,
-            sections: generate_sections(2, true, 300),
-        },
-    };
+fn test_train_system_struct() {
+    let mut system = TrainSystem::new();
 
-    //Go to next update so our sections are properly active
-    update_train_position(&mut data);
+    system.track(1000);
 
-    //Count = 0
-    assert!(matches!(data.train.train_status, TrainStatus::Stopped));
+    assert_eq!(system.structures.len(), 1);
+    assert_eq!(system.pins.len(), 2);
 
-    assert_eq!(data.track.sections[0].active, true);
-    assert_eq!(data.track.sections[1].active, false);
+    if let Some(structure) = system.structures.get(&0) {
+        if let StructureTypes::Track(track) = &structure {
+            assert_eq!(track.idx, 0);
+            assert_eq!(track.input_pin, 0);
+            assert_eq!(track.output_pin, 1);
+        }
+    }
 
-    //Increment and go to next update
-    data.count += 1;
-    update_train_position(&mut data);
+    // now we have 1 structure with idx 0, input pin idx 0 and output pin idx 1
+    //check that switch becomes idx 1, input pin idx 2, left output 3 and right output 4
+    system.switch(SwitchType::LeftSplitDown);
 
-    //Count = 1
-    assert!(matches!(data.train.train_status, TrainStatus::Running));
+    assert_eq!(system.structures.len(), 2);
+    assert_eq!(system.pins.len(), 5);
 
-    assert_eq!(data.track.sections[0].active, true);
-    assert_eq!(data.track.sections[1].active, true);
-
-    //Go to final update
-    data.count += 1;
-    update_train_position(&mut data);
-
-    //Count = 2
-    assert!(matches!(data.train.train_status, TrainStatus::Stopped));
-
-    assert_eq!(data.track.sections[0].active, false);
-    assert_eq!(data.track.sections[1].active, true);
-
-    //Check for same status
-    data.count += 1;
-    update_train_position(&mut data);
-
-    //Count = 3
-    assert!(matches!(data.train.train_status, TrainStatus::Stopped));
-
-    assert_eq!(data.track.sections[0].active, false);
-    assert_eq!(data.track.sections[1].active, true);
+    if let Some(structure) = system.structures.get(&1) {
+        if let StructureTypes::Switch(switch) = &structure {
+            assert_eq!(switch.idx, 1);
+            assert_eq!(switch.input_pin, 2);
+            assert_eq!(switch.left_output_pin, 3);
+            assert_eq!(switch.right_output_pin, 4);
+        }
+    }
 }
 
+///Color Test
+/// Tests Utility function to convert a hex string to a egui Color 32
 #[test]
 fn test_color() {
     let blue = Color32::BLUE;

@@ -14,8 +14,7 @@ use tokio::{
 #[derive(Debug, Clone)]
 pub struct WorkerData {
     pub count: usize,
-    pub train: Train,
-    pub track: Track,
+    pub train_system: TrainSystem,
 }
 
 ///Worker Message Enumerator
@@ -36,15 +35,7 @@ pub async fn worker_loop(
 ) -> tokio::io::Result<()> {
     let mut data = WorkerData {
         count: 0,
-        train: Train {
-            train_number: 1234,
-            train_status: TrainStatus::Stopped,
-            train_length: 100,
-        },
-        track: Track {
-            track_length: 1000,
-            sections: generate_sections(5, true, 1000),
-        },
+        train_system: TrainSystem::new(),
     };
 
     let mut data_ref = &mut data;
@@ -66,7 +57,7 @@ pub async fn worker_loop(
                 //Increment
                 data_ref.count += 1;
                 //update train position
-                update_train_position(data_ref);
+                //update_train_position(data_ref);
 
                 //update ui
                 channel.send(data_ref.clone()).unwrap();}
@@ -90,14 +81,14 @@ pub async fn worker_loop(
             Command::Counter(number) => {
                 data_ref.count = number;
                 interval = set_new_interval();
-                update_train_position(data_ref);
+                //update_train_position(data_ref);
                 channel.send(data_ref.clone()).unwrap();
             }
 
             Command::Reset => {
                 data_ref.count = 0;
                 interval = set_new_interval();
-                update_train_position(data_ref);
+                //update_train_position(data_ref);
                 channel.send(data_ref.clone()).unwrap();
             }
         }
@@ -108,46 +99,46 @@ pub async fn worker_loop(
 ///After each tick we update train position based on elapsed time and if we need to brake for next stop
 ///For now we use a simple track A --> B, 1000M long, no acceleration or braking yet
 /// Train travels 100M / S (crazy fast)
-pub fn update_train_position(data: &mut WorkerData) -> &mut WorkerData {
-    let mut train = &mut data.train;
-    let track = &mut data.track;
+// pub fn update_train_position(data: &mut WorkerData) -> &mut WorkerData {
+//     let mut train = &mut data.train;
+//     let track = &mut data.track;
 
-    //We move a 100M each tick, back of the train is one train length behind the position if train is not at the end
-    let position: usize = train.train_length + (data.count * 100);
+//     //We move a 100M each tick, back of the train is one train length behind the position if train is not at the end
+//     let position: usize = train.train_length + (data.count * 100);
 
-    if position > track.track_length {
-        println!("Done");
-        return data;
-    }
-    let back_of_train = position - train.train_length;
+//     if position > track.track_length {
+//         println!("Done");
+//         return data;
+//     }
+//     let back_of_train = position - train.train_length;
 
-    //Check if the front or back of the train is one of the sections, that means it is active
-    for i in 0..track.sections.len() {
-        let section = &mut track.sections[i];
-        section.active = false;
+//     //Check if the front or back of the train is one of the sections, that means it is active
+//     for i in 0..track.sections.len() {
+//         let section = &mut track.sections[i];
+//         section.active = false;
 
-        if back_of_train > section.distance_start && back_of_train < section.distance_end {
-            section.active = true;
-            section.train_number = train.train_number;
-        }
+//         if back_of_train > section.distance_start && back_of_train < section.distance_end {
+//             section.active = true;
+//             section.train_number = train.train_number;
+//         }
 
-        if position > section.distance_start && position < section.distance_end {
-            section.active = true;
-            section.train_number = train.train_number;
-        }
-    }
+//         if position > section.distance_start && position < section.distance_end {
+//             section.active = true;
+//             section.train_number = train.train_number;
+//         }
+//     }
 
-    //If we reached the end of the track, we've stopped
-    if position == track.track_length {
-        train.train_status = TrainStatus::Stopped;
-    } else if back_of_train == 0 {
-        train.train_status = TrainStatus::Stopped;
-    } else {
-        train.train_status = TrainStatus::Running
-    }
+//     //If we reached the end of the track, we've stopped
+//     if position == track.track_length {
+//         train.train_status = TrainStatus::Stopped;
+//     } else if back_of_train == 0 {
+//         train.train_status = TrainStatus::Stopped;
+//     } else {
+//         train.train_status = TrainStatus::Running
+//     }
 
-    data
-}
+//     data
+// }
 
 ///Set New Interval
 ///When doing an action where you want to 'restart' counting our interval
