@@ -1,8 +1,8 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use crate::utils::ColorHex;
-use crate::worker::{self, Command};
+use crate::worker::{self, Command, WorkerData};
 use eframe::egui::style::Margin;
 use eframe::egui::Sense;
 use eframe::emath;
@@ -19,11 +19,12 @@ use eframe::{
 use tokio::sync::mpsc::UnboundedSender;
 use tokio::task::JoinHandle;
 
+type Data = Arc<Mutex<Option<WorkerData>>>;
 ///Application struct used by Egui
 ///Contains two join handles so worker is kept in scope
 /// UI transmitter is used so our struct can send messages to our worker loop
 pub struct TrainSim {
-    pub count: Arc<AtomicUsize>,
+    pub worker_data: Data,
     worker_handle: Option<JoinHandle<()>>,
     join_handle: Option<JoinHandle<()>>,
     ui_transmitter: Option<UnboundedSender<Command>>,
@@ -58,12 +59,14 @@ impl App for TrainSim {
         }));
 
         //Retrieve weak handles to our data and frame so we can respond if worker loop sends us a message with new data
-        let data = self.count.clone();
+        let data_handle = self.worker_data.clone();
         let frame_handle = frame.clone();
         self.join_handle = Some(tokio::spawn(async move {
             while let Some(workerdata) = ui_receiver.recv().await {
-                data.store(workerdata.count, Ordering::SeqCst);
-                frame_handle.request_repaint();
+                if let Ok(mut data) = data_handle.lock() {
+                    *data = Some(workerdata);
+                    frame_handle.request_repaint();
+                }
             }
         }));
     }
@@ -75,68 +78,74 @@ impl App for TrainSim {
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &eframe::epi::Frame) {
         let frame = Frame::none().fill(Color32::from_hex("#3A3C49").unwrap());
 
-        CentralPanel::default().frame(frame).show(ctx, |ui| {
-            ui.vertical_centered(|ui| {
-                ui.label("Train Simulator");
+        let data_handle = self.worker_data.clone();
+        if let Ok(data_option) = data_handle.lock() {
+            if let Some(data) = &*data_option {
+                CentralPanel::default().frame(frame).show(ctx, |ui| {
+                    ui.vertical_centered(|ui| {
+                        ui.label("Train Simulator");
 
-                ui.separator();
+                        ui.separator();
 
-                ui.add_space(10.0);
+                        ui.add_space(10.0);
 
-                ui.label("Counter");
+                        ui.label("Counter");
 
-                ui.add_space(10.0);
+                        ui.add_space(10.0);
 
-                ui.label(self.count.clone().load(Ordering::SeqCst).to_string());
+                        ui.label(data.count.to_string());
 
-                //Frame has a little padding
-                Frame::none()
-                    .margin(Margin::symmetric(10.0, 10.0))
-                    .show(ui, |ui| {
-                        //try to draw a rectangle at least 300px high
-                        let (response, painter) = ui.allocate_painter(
-                            Vec2::new(ui.available_width(), 200.0),
-                            Sense::click(),
-                        );
+                        //Frame has a little padding
+                        Frame::none()
+                            .margin(Margin::symmetric(10.0, 10.0))
+                            .show(ui, |ui| {
+                                //try to draw a rectangle at least 300px high
+                                let (response, painter) = ui.allocate_painter(
+                                    Vec2::new(ui.available_width(), 200.0),
+                                    Sense::click(),
+                                );
 
-                        //Scale transform to transform our points to points within the available space
-                        let to_screen = emath::RectTransform::from_to(
-                            Rect::from_min_size(Pos2::ZERO, response.rect.size()),
-                            response.rect,
-                        );
+                                //Scale transform to transform our points to points within the available space
+                                let to_screen = emath::RectTransform::from_to(
+                                    Rect::from_min_size(Pos2::ZERO, response.rect.size()),
+                                    response.rect,
+                                );
 
-                        //Define points within our abstract space
-                        let line_points = vec![
-                            Pos2::new(0.0, 200.0),
-                            Pos2::new(response.rect.width(), 200.0),
-                        ];
+                                //Define points within our abstract space
+                                let line_points = vec![
+                                    Pos2::new(0.0, 200.0),
+                                    Pos2::new(response.rect.width(), 200.0),
+                                ];
 
-                        //Transform abstract space to available space
-                        let points_in_screen: Vec<Pos2> =
-                            line_points.iter().map(|p| to_screen * *p).collect();
+                                //Transform abstract space to available space
+                                let points_in_screen: Vec<Pos2> =
+                                    line_points.iter().map(|p| to_screen * *p).collect();
 
-                        //Define stroke size and color
-                        let stroke_color = Stroke::new(2.0, Color32::WHITE.linear_multiply(0.5));
+                                //Define stroke size and color
+                                let stroke_color =
+                                    Stroke::new(2.0, Color32::WHITE.linear_multiply(0.5));
 
-                        //paint points
-                        painter.add(PathShape::line(points_in_screen, stroke_color));
+                                //paint points
+                                painter.add(PathShape::line(points_in_screen, stroke_color));
+                            });
+                        // if ui.button("reset").clicked() {
+                        //     if let Some(tx) = &self.ui_transmitter {
+                        //         tx.send(Command::Reset).unwrap();
+                        //     }
+                        // }
+
+                        // ui.add_space(10.0);
+
+                        // if ui.button("set 5").clicked() {
+                        //     if let Some(tx) = &self.ui_transmitter {
+                        //         tx.send(Command::Counter(5)).unwrap();
+                        //         Context::default().request_repaint();
+                        //     }
+                        // }
                     });
-                // if ui.button("reset").clicked() {
-                //     if let Some(tx) = &self.ui_transmitter {
-                //         tx.send(Command::Reset).unwrap();
-                //     }
-                // }
-
-                // ui.add_space(10.0);
-
-                // if ui.button("set 5").clicked() {
-                //     if let Some(tx) = &self.ui_transmitter {
-                //         tx.send(Command::Counter(5)).unwrap();
-                //         Context::default().request_repaint();
-                //     }
-                // }
-            });
-        });
+                });
+            }
+        };
     }
 
     //Set Window title
@@ -156,7 +165,7 @@ impl App for TrainSim {
 impl TrainSim {
     pub fn new() -> TrainSim {
         TrainSim {
-            count: Arc::new(AtomicUsize::new(0)),
+            worker_data: Arc::new(Mutex::new(None)),
             worker_handle: None,
             join_handle: None,
             ui_transmitter: None,
