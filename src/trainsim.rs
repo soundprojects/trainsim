@@ -3,13 +3,17 @@ use std::sync::Arc;
 
 use crate::utils::ColorHex;
 use crate::worker::{self, Command};
+use eframe::egui::style::Margin;
+use eframe::egui::Sense;
+use eframe::emath;
+use eframe::epaint::PathShape;
 use eframe::{
     egui::CentralPanel,
     egui::Color32,
     egui::Context,
     egui::Frame,
     egui::{FontData, FontDefinitions, FontFamily, Style, TextStyle},
-    epaint::{FontId, Rounding, Stroke, Vec2},
+    epaint::{FontId, Pos2, Rect, Rounding, Stroke, Vec2},
     epi::App,
 };
 use tokio::sync::mpsc::UnboundedSender;
@@ -84,22 +88,53 @@ impl App for TrainSim {
                 ui.add_space(10.0);
 
                 ui.label(self.count.clone().load(Ordering::SeqCst).to_string());
-                ui.add_space(10.0);
 
-                if ui.button("reset").clicked() {
-                    if let Some(tx) = &self.ui_transmitter {
-                        tx.send(Command::Reset).unwrap();
-                    }
-                }
+                //Frame has a little padding
+                Frame::none()
+                    .margin(Margin::symmetric(10.0, 10.0))
+                    .show(ui, |ui| {
+                        //try to draw a rectangle at least 300px high
+                        let (response, painter) = ui.allocate_painter(
+                            Vec2::new(ui.available_width(), 200.0),
+                            Sense::click(),
+                        );
 
-                ui.add_space(10.0);
+                        //Scale transform to transform our points to points within the available space
+                        let to_screen = emath::RectTransform::from_to(
+                            Rect::from_min_size(Pos2::ZERO, response.rect.size()),
+                            response.rect,
+                        );
 
-                if ui.button("set 5").clicked() {
-                    if let Some(tx) = &self.ui_transmitter {
-                        tx.send(Command::Counter(5)).unwrap();
-                        Context::default().request_repaint();
-                    }
-                }
+                        //Define points within our abstract space
+                        let line_points = vec![
+                            Pos2::new(0.0, 200.0),
+                            Pos2::new(response.rect.width(), 200.0),
+                        ];
+
+                        //Transform abstract space to available space
+                        let points_in_screen: Vec<Pos2> =
+                            line_points.iter().map(|p| to_screen * *p).collect();
+
+                        //Define stroke size and color
+                        let stroke_color = Stroke::new(2.0, Color32::WHITE.linear_multiply(0.5));
+
+                        //paint points
+                        painter.add(PathShape::line(points_in_screen, stroke_color));
+                    });
+                // if ui.button("reset").clicked() {
+                //     if let Some(tx) = &self.ui_transmitter {
+                //         tx.send(Command::Reset).unwrap();
+                //     }
+                // }
+
+                // ui.add_space(10.0);
+
+                // if ui.button("set 5").clicked() {
+                //     if let Some(tx) = &self.ui_transmitter {
+                //         tx.send(Command::Counter(5)).unwrap();
+                //         Context::default().request_repaint();
+                //     }
+                // }
             });
         });
     }
