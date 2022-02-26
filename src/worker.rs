@@ -21,7 +21,7 @@ pub struct WorkerData {
 ///Worker Message Enumerator
 ///For now just contains Quit and Counter for updating our counter from the UI
 #[derive(Debug)]
-pub enum WorkerMessage {
+pub enum Command {
     Quit,
     Counter(usize),
     Reset,
@@ -31,7 +31,7 @@ pub enum WorkerMessage {
 ///it allows for the UI to be updated through our weak handle
 ///sender and receivers are used for callback communication and other signals
 pub async fn worker_loop(
-    mut r: UnboundedReceiver<WorkerMessage>,
+    mut r: UnboundedReceiver<Command>,
     t: UnboundedSender<WorkerData>,
 ) -> tokio::io::Result<()> {
     let mut data = WorkerData {
@@ -85,16 +85,16 @@ pub async fn worker_loop(
 
         //We got a message from our receiver
         match m {
-            WorkerMessage::Quit => return Ok(()),
+            Command::Quit => return Ok(()),
 
-            WorkerMessage::Counter(number) => {
+            Command::Counter(number) => {
                 data_ref.count = number;
                 interval = set_new_interval();
                 update_train_position(data_ref);
                 channel.send(data_ref.clone()).unwrap();
             }
 
-            WorkerMessage::Reset => {
+            Command::Reset => {
                 data_ref.count = 0;
                 interval = set_new_interval();
                 update_train_position(data_ref);

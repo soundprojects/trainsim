@@ -2,7 +2,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use crate::utils::ColorHex;
-use crate::worker::{self, WorkerMessage};
+use crate::worker::{self, Command};
 use eframe::{
     egui::CentralPanel,
     egui::Color32,
@@ -15,17 +15,20 @@ use eframe::{
 use tokio::sync::mpsc::UnboundedSender;
 use tokio::task::JoinHandle;
 
-//Application struct used by Egui. Contains Tx/Rx for communicating with Worker Loop
+///Application struct used by Egui
+///Contains two join handles so worker is kept in scope
+/// UI transmitter is used so our struct can send messages to our worker loop
 pub struct TrainSim {
     pub count: Arc<AtomicUsize>,
     worker_handle: Option<JoinHandle<()>>,
     join_handle: Option<JoinHandle<()>>,
-    ui_transmitter: Option<UnboundedSender<WorkerMessage>>,
+    ui_transmitter: Option<UnboundedSender<Command>>,
 }
 
 //Implement App trait for our struct
 impl App for TrainSim {
     //First time setup -> Set fonts, colors etc
+    //Create handlers for worker loop and for message passing to our worker
     fn setup(
         &mut self,
         ctx: &eframe::egui::Context,
@@ -34,6 +37,7 @@ impl App for TrainSim {
     ) {
         //assign custom fonts and styles
         self.configure_fonts(ctx);
+        self.configure_style(ctx);
 
         //create channels to communicate with worker_loop
         let (ui_transmitter, worker_receiver) = tokio::sync::mpsc::unbounded_channel();
@@ -60,7 +64,10 @@ impl App for TrainSim {
         }));
     }
 
-    //UI update
+    ///UI update
+    /// This update function is called for each redraw
+    /// Here we build our UI using the builder pattern
+    /// We use request_repaint() to call this function when needed
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &eframe::epi::Frame) {
         let frame = Frame::none().fill(Color32::from_hex("#3A3C49").unwrap());
 
@@ -81,7 +88,7 @@ impl App for TrainSim {
 
                 if ui.button("reset").clicked() {
                     if let Some(tx) = &self.ui_transmitter {
-                        tx.send(WorkerMessage::Reset).unwrap();
+                        tx.send(Command::Reset).unwrap();
                     }
                 }
 
@@ -89,7 +96,7 @@ impl App for TrainSim {
 
                 if ui.button("set 5").clicked() {
                     if let Some(tx) = &self.ui_transmitter {
-                        tx.send(WorkerMessage::Counter(5)).unwrap();
+                        tx.send(Command::Counter(5)).unwrap();
                         Context::default().request_repaint();
                     }
                 }
@@ -105,7 +112,7 @@ impl App for TrainSim {
     //Quit our worker thread upon exiting window
     fn on_exit(&mut self) {
         if let Some(tx) = &self.ui_transmitter {
-            tx.send(WorkerMessage::Quit).unwrap();
+            tx.send(Command::Quit).unwrap();
         }
         println!("Program is quitting");
     }
@@ -121,6 +128,9 @@ impl TrainSim {
         }
     }
 
+    ///Configure Fonts
+    /// Create Font definitions and sets them into our Context
+    /// Assign custom font for the Proportional Font Family
     fn configure_fonts(&self, ctx: &Context) {
         let mut font_def = FontDefinitions::default();
 
@@ -134,9 +144,16 @@ impl TrainSim {
             .insert(FontFamily::Proportional, vec!["Avenir".to_owned()]);
 
         ctx.set_fonts(font_def);
+    }
 
+    ///Configure Styles
+    /// Get's a mutable style Struct from our Context
+    /// Adapts some parameters and stores it back
+    /// Change colors, sizes for UI controls
+    fn configure_style(&self, ctx: &Context) {
         let mut style: Style = (*ctx.style()).clone();
 
+        //Make buttons bigger
         style.spacing.button_padding = Vec2::new(60.0, 20.0);
         style.visuals.widgets.inactive.rounding = Rounding {
             nw: 15.0,
@@ -144,6 +161,7 @@ impl TrainSim {
             sw: 15.0,
             se: 15.0,
         };
+        //Change button colors and text colors in fg_stroke
         style.visuals.widgets.inactive.bg_fill = Color32::from_hex("#4e505c").unwrap();
         style.visuals.widgets.inactive.fg_stroke = Stroke {
             width: 1.0,
@@ -153,6 +171,7 @@ impl TrainSim {
             width: 1.0,
             color: Color32::from_hex("#FFFFFF").unwrap(),
         };
+        //Increase default font sizes for normal widgets and for buttons
         style.text_styles.insert(
             TextStyle::Body,
             FontId {
